@@ -25,26 +25,7 @@
 package fr.opensagres.poi.xwpf.converter.xhtml.internal;
 
 import static fr.opensagres.poi.xwpf.converter.core.utils.DxaUtil.emu2points;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.A_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.BODY_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.BR_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.CLASS_ATTR;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.COLSPAN_ATTR;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.DIV_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.HEAD_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.HREF_ATTR;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.HTML_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.ID_ATTR;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.IMG_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.P_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.ROWSPAN_ATTR;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.SPAN_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.SRC_ATTR;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.STYLE_ATTR;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.TABLE_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.TD_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.TH_ELEMENT;
-import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.TR_ELEMENT;
+import static fr.opensagres.poi.xwpf.converter.xhtml.internal.XHTMLConstants.*;
 import static fr.opensagres.poi.xwpf.converter.xhtml.internal.styles.CSSStylePropertyConstants.HEIGHT;
 import static fr.opensagres.poi.xwpf.converter.xhtml.internal.styles.CSSStylePropertyConstants.MARGIN_BOTTOM;
 import static fr.opensagres.poi.xwpf.converter.xhtml.internal.styles.CSSStylePropertyConstants.MARGIN_LEFT;
@@ -56,15 +37,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFFooter;
-import org.apache.poi.xwpf.usermodel.XWPFHeader;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFPictureData;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableCell;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.apache.poi.xwpf.usermodel.*;
 import org.apache.xmlbeans.XmlException;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTPositiveSize2D;
 import org.openxmlformats.schemas.drawingml.x2006.picture.CTPicture;
@@ -191,6 +164,25 @@ public class XHTMLMapper
     }
 
     @Override
+    protected Object startVisitSDT(XWPFSDT contents, Object container) throws SAXException {
+
+        startElement(DIV_ELEMENT, null);
+//        startElement(PRE_ELEMENT, null);
+        return null;
+    }
+
+//    @Override
+//    protected void visitSDTBody(XWPFSDT contents, Object sdtContainer) throws SAXException {
+//        characters(contents.getContent().getText());
+//    }
+
+    @Override
+    protected void endVisitSDT(XWPFSDT contents, Object container, Object sdtContainer) throws SAXException {
+//        endElement(PRE_ELEMENT);
+        endElement(DIV_ELEMENT);
+    }
+
+    @Override
     protected Object startVisitParagraph( XWPFParagraph paragraph, ListItemContext itemContext, Object parentContainer )
         throws Exception
     {
@@ -202,6 +194,9 @@ public class XHTMLMapper
         // 1.2) Create "style" attributes.
         CTPPr pPr = paragraph.getCTP().getPPr();
         CSSStyle cssStyle = getStylesDocument().createCSSStyle( pPr );
+        if(cssStyle != null) {
+            cssStyle.addProperty(CSSStylePropertyConstants.WHITE_SPACE, "pre-wrap");            
+        }
         attributes = createStyleAttribute( cssStyle, attributes );
 
         // 2) create element
@@ -247,6 +242,9 @@ public class XHTMLMapper
         // 1.2) Create "style" attributes.
         CTRPr rPr = run.getCTR().getRPr();
         CSSStyle cssStyle = getStylesDocument().createCSSStyle( rPr );
+        if (cssStyle != null) {
+            cssStyle.addProperty(CSSStylePropertyConstants.WHITE_SPACE, "pre-wrap");
+        }
         this.currentRunAttributes = createStyleAttribute( cssStyle, currentRunAttributes );
 
         if ( url != null )
@@ -575,14 +573,14 @@ public class XHTMLMapper
             }
 
             CTPositiveSize2D ext = picture.getSpPr().getXfrm().getExt();
-
+            CSSStyle style = new CSSStyle( IMG_ELEMENT, null );
             // img/@width
             float width = emu2points( ext.getCx() );
-            attributes = SAXHelper.addAttrValue( attributes, WIDTH, getStylesDocument().getValueAsPoint( width ) );
-
             // img/@height
             float height = emu2points( ext.getCy() );
-            attributes = SAXHelper.addAttrValue( attributes, HEIGHT, getStylesDocument().getValueAsPoint( height ) );
+            style.addProperty(WIDTH, getStylesDocument().getValueAsPoint( width ) );
+            style.addProperty(HEIGHT, getStylesDocument().getValueAsPoint( height ) );
+            attributes = SAXHelper.addAttrValue( attributes, STYLE_ATTR, style.getInlineStyles() );
         }
         else 
         {    
@@ -592,14 +590,14 @@ public class XHTMLMapper
         	attributes = SAXHelper.addAttrValue( null, SRC_ATTR, src );
         	
         	CTPositiveSize2D ext = picture.getSpPr().getXfrm().getExt();
-
+        	CSSStyle style = new CSSStyle( IMG_ELEMENT, null );
             // img/@width
             float width = emu2points( ext.getCx() );
-            attributes = SAXHelper.addAttrValue( attributes, WIDTH, getStylesDocument().getValueAsPoint( width ) );
-
             // img/@height
             float height = emu2points( ext.getCy() );
-            attributes = SAXHelper.addAttrValue( attributes, HEIGHT, getStylesDocument().getValueAsPoint( height ) );	
+            style.addProperty(WIDTH, getStylesDocument().getValueAsPoint( width ) );
+            style.addProperty(HEIGHT, getStylesDocument().getValueAsPoint( height ) );
+            attributes = SAXHelper.addAttrValue( attributes, STYLE_ATTR, style.getInlineStyles() );
         }
         if ( attributes != null )
         {

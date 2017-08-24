@@ -29,11 +29,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import fr.opensagres.poi.xwpf.converter.core.ImageManager;
 import org.apache.poi.xwpf.converter.core.AbstractXWPFPOIConverterTest;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
-import fr.opensagres.poi.xwpf.converter.core.FileImageExtractor;
-import fr.opensagres.poi.xwpf.converter.core.FileURIResolver;
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLConverter;
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLOptions;
 
@@ -76,10 +75,7 @@ public class XHTMLConverterTestCase
 
         XHTMLOptions options = XHTMLOptions.create();// .indent( 4 );
         // Extract image
-        File imageFolder = new File( root + "/images/" + fileInName );
-        options.setExtractor( new FileImageExtractor( imageFolder ) );
-        // URI resolver
-        options.URIResolver( new FileURIResolver( imageFolder ) );
+        options.setImageManager( new ImageManager( new File(root), "images" ) );
 
         OutputStream out = new FileOutputStream( new File( fileOutName ) );
         XHTMLConverter.getInstance().convert( document, out, options );

@@ -493,6 +493,13 @@ public abstract class AbstractXWPFPOIConverterTest
     {
         doGenerate( "TestTableNested.docx" );
     }
+	
+	@Test
+    public void TestTableMultiLineMerge()
+        throws IOException
+    {
+        doGenerate( "TestTableMultiLineMerge.docx" );
+    }
 
     @Test
     public void TestTabulation()
@@ -514,11 +521,15 @@ public abstract class AbstractXWPFPOIConverterTest
     {
         doGenerate( "TestTitle.docx" );
     }
-    
+
     @Test
-    public void TestTxtFormatTableBorderExternalImages() throws IOException
+    public void numberingBugFix() throws IOException
     {
-    	doGenerate("TestTxtFormatTableBorderExternalImages.docx");
+        try {
+            doGenerate("underlineBug.docx");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     protected abstract void doGenerate( String fileName )
